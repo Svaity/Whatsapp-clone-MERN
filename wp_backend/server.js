@@ -24,6 +24,11 @@ pusher.trigger("my-channel", "my-event", {
 //middlewares
 app.use(express.json())
 
+app.use((req, res, next)=>{
+    res.setHeader("Access-control-Allow-Origin", "*");
+    res.setHeader("Access-control-Allow-Headers", "*");
+    next();
+})
 
 // DB config
 const conn_url = 'mongodb+srv://admin:XoiJMYOtryKYcFKd@cluster0.q3qqu.mongodb.net/whatsappdb?retryWrites=true&w=majority'
@@ -33,8 +38,30 @@ mongoose.connect(conn_url, {
     useUnifiedTopology: true
 })
 
+//connecting database - chaneg stream
+const db = mongoose.connection
 
-//?????
+db.once('open',()=>{
+    console.log("DB connected")
+
+    const msgCollection = db.collection('messagecontents')
+    const changeStream = msgCollection.watch()
+
+    changeStream.on('change', (change)=>{
+        console.log("change", change);
+
+        if (change.operationType==="insert"){
+            const messageDetails = change.fullDocument;
+            pusher.trigger('messages',"inserted", {
+                name: messageDetails.name,
+                message: messageDetails.message,
+            })
+        } else {
+            console.log("Eror  triggering pusher");
+        }
+
+    })
+})
 
 // api routes
 app.get('/', (req, res)=> res.status(200).send("hello world"));

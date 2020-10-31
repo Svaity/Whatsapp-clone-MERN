@@ -3,6 +3,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import Messages from './dbmessages.js'
 import Pusher from 'pusher'
+import cors from 'cors'
 
 // app config
 const app = express();
@@ -23,12 +24,7 @@ pusher.trigger("my-channel", "my-event", {
 
 //middlewares
 app.use(express.json())
-
-app.use((req, res, next)=>{
-    res.setHeader("Access-control-Allow-Origin", "*");
-    res.setHeader("Access-control-Allow-Headers", "*");
-    next();
-})
+app.use(cors())
 
 // DB config
 const conn_url = 'mongodb+srv://admin:XoiJMYOtryKYcFKd@cluster0.q3qqu.mongodb.net/whatsappdb?retryWrites=true&w=majority'
@@ -37,6 +33,7 @@ mongoose.connect(conn_url, {
     useNewUrlParser: true,
     useUnifiedTopology: true
 })
+
 
 //connecting database - chaneg stream
 const db = mongoose.connection
@@ -55,6 +52,7 @@ db.once('open',()=>{
             pusher.trigger('messages',"inserted", {
                 name: messageDetails.name,
                 message: messageDetails.message,
+                timestamp: messageDetails.timestamp,
             })
         } else {
             console.log("Eror  triggering pusher");

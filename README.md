@@ -1,4 +1,3 @@
-## Whatsapp-clone-MERN
 <div align="center">
    <img src="https://logos-world.net/wp-content/uploads/2020/05/WhatsApp-Emblem.png" width="500px"/>
 </div>
